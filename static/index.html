@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ReceiptLens - AI-Powered Receipt & Invoice Extraction</title>
+  <meta name="description" content="Convert photos of receipts and invoices into verified structured data with Gemini AI. Supports Indian GST formats, multi-language line items, and math reconciliation.">
+  
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+  <!-- App Stylesheet -->
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+
+  <!-- Top App Header -->
+  <header class="app-header">
+    <div class="header-container">
+      <a href="#" class="brand" onclick="window.App.showTab('upload'); return false;">
+        <div class="brand-icon">
+          <i data-lucide="scan-line" style="width:20px; height:20px;"></i>
+        </div>
+        <div class="brand-text">Receipt<span>Lens</span></div>
+      </a>
+
+      <!-- Navigation Tabs -->
+      <nav class="nav-tabs">
+        <button class="nav-tab active" data-tab="upload" id="nav-tab-upload">
+          <i data-lucide="upload-cloud" style="width:16px;"></i> Scan & Upload
+        </button>
+        <button class="nav-tab" data-tab="review" id="nav-tab-review">
+          <i data-lucide="columns-2" style="width:16px;"></i> Verify & Edit
+        </button>
+        <button class="nav-tab" data-tab="dashboard" id="nav-tab-dashboard">
+          <i data-lucide="bar-chart-3" style="width:16px;"></i> Dashboard
+        </button>
+        <button class="nav-tab" data-tab="receipts" id="nav-tab-receipts">
+          <i data-lucide="receipt" style="width:16px;"></i> All Receipts
+        </button>
+      </nav>
+
+      <!-- Right Header Actions -->
+      <div class="header-actions">
+        <div class="status-pill" id="gemini-status">
+          <span class="status-dot"></span> Checking Gemini...
+        </div>
+        <button class="btn btn-secondary btn-sm" id="btn-settings" title="Settings & API Key">
+          <i data-lucide="settings" style="width:15px;"></i> Settings
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="main-content">
+
+    <!-- ====================================================================
+         VIEW 1: UPLOAD & SCANNER
+         ==================================================================== -->
+    <section class="view-section active" id="view-upload">
+      <div class="upload-hero">
+        <h1>Transform Receipts into Clean Data</h1>
+        <p>Extract line items, taxes, GST breakdowns, and vendor details in seconds using Gemini multimodal structured extraction.</p>
+      </div>
+
+      <!-- Drag & Drop Zone -->
+      <div class="dropzone-container">
+        <div class="dropzone" id="dropzone">
+          <div class="dropzone-icon-box">
+            <i data-lucide="upload" style="width:32px; height:32px;"></i>
+          </div>
+          <div class="dropzone-title">Drag and drop receipts or invoices here</div>
+          <div class="dropzone-subtitle">Supports JPG, PNG, WebP, or PDF documents (Single or Multi-file batch)</div>
+          
+          <div class="dropzone-actions" onclick="event.stopPropagation();">
+            <button type="button" class="btn btn-primary" onclick="document.getElementById('file-input').click()">
+              <i data-lucide="folder-open" style="width:16px;"></i> Browse Files
+            </button>
+            <button type="button" class="btn btn-secondary" id="btn-open-camera">
+              <i data-lucide="camera" style="width:16px;"></i> Use Camera
+            </button>
+          </div>
+          <input type="file" id="file-input" multiple accept="image/*,application/pdf" style="display:none;">
+        </div>
+      </div>
+
+      <!-- Batch Processing Queue (Shown when files are uploading) -->
+      <div class="queue-card" id="queue-container" style="display: none;">
+        <div class="queue-header">
+          <div style="font-weight: 700; font-size: 1.05rem; display: flex; align-items: center; gap: 0.5rem;">
+            <i data-lucide="layers" style="width:18px; color:#6366f1;"></i> Processing Queue
+          </div>
+          <button class="btn btn-primary btn-sm" onclick="window.App.showTab('review')">
+            Open Editor <i data-lucide="arrow-right" style="width:14px;"></i>
+          </button>
+        </div>
+        <div class="queue-items-list" id="queue-list"></div>
+      </div>
+
+      <!-- Pre-loaded Demo Receipts Carousel -->
+      <div class="samples-bar">
+        <div class="samples-header">
+          <div class="samples-title">
+            <i data-lucide="sparkles" style="width:16px; color:#f59e0b;"></i> Instant Demo Receipts (Click to Test)
+          </div>
+          <span style="font-size:0.8rem; color:#64748b;">Includes Indian GST bills, Supermarkets, Taxi invoices & Blurry samples</span>
+        </div>
+        <div class="samples-grid" id="samples-grid">
+          <!-- Dynamic Sample Cards Injected Here -->
+        </div>
+      </div>
+    </section>
+
+    <!-- ====================================================================
+         VIEW 2: SIDE-BY-SIDE VERIFICATION & EDITOR
+         ==================================================================== -->
+    <section class="view-section" id="view-review">
+      <div class="editor-layout">
+
+        <!-- LEFT PANEL: Image Viewer -->
+        <div class="viewer-panel">
+          <div class="viewer-toolbar">
+            <div style="font-weight: 700; font-size: 0.9rem; display: flex; align-items: center; gap: 0.4rem;">
+              <i data-lucide="image" style="width:16px; color:#6366f1;"></i> Document Viewer
+            </div>
+            <div class="viewer-tools">
+              <button class="btn btn-secondary btn-icon btn-sm" id="btn-zoom-out" title="Zoom Out">
+                <i data-lucide="zoom-out" style="width:15px;"></i>
+              </button>
+              <span class="viewer-zoom-label" id="zoom-percentage">100%</span>
+              <button class="btn btn-secondary btn-icon btn-sm" id="btn-zoom-in" title="Zoom In">
+                <i data-lucide="zoom-in" style="width:15px;"></i>
+              </button>
+              <button class="btn btn-secondary btn-icon btn-sm" id="btn-zoom-fit" title="Fit Width">
+                <i data-lucide="maximize-2" style="width:15px;"></i>
+              </button>
+              <button class="btn btn-secondary btn-icon btn-sm" id="btn-rotate" title="Rotate 90°">
+                <i data-lucide="rotate-cw" style="width:15px;"></i>
+              </button>
+              <button class="btn btn-secondary btn-icon btn-sm" id="btn-zoom-reset" title="Reset View">
+                <i data-lucide="refresh-cw" style="width:15px;"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- Canvas / Image Container -->
+          <div class="viewer-canvas-wrap" id="viewer-canvas-wrap">
+            <img src="" alt="Receipt Document" id="viewer-receipt-image" class="viewer-image">
+          </div>
+        </div>
+
+        <!-- RIGHT PANEL: Structured Form & Validation Editor -->
+        <div class="editor-panel">
+          <div class="editor-scroll-area">
+
+            <!-- Friendly Error Banner for Blurry / Non-Receipt Documents -->
+            <div class="validation-banner flagged" id="rejection-error-banner" style="display:none;">
+              <div class="validation-icon"><i data-lucide="alert-octagon" style="width:20px; color:#f43f5e;"></i></div>
+              <div class="validation-details">
+                <div class="validation-title">Unable to Read Receipt</div>
+                <div id="rejection-reason-text" style="font-size:0.85rem; margin-bottom:0.5rem;">The provided image could not be recognized as a valid receipt.</div>
+                <div style="display:flex; gap:0.5rem;">
+                  <button type="button" class="btn btn-sm btn-secondary" onclick="window.App.showTab('upload')">
+                    <i data-lucide="upload" style="width:13px;"></i> Upload Clearer Image
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Math Discrepancy Validation Banner -->
+            <div class="validation-banner valid" id="math-validation-banner">
+              <div class="validation-icon"><i data-lucide="check-circle-2" style="width:20px;"></i></div>
+              <div class="validation-details">
+                <div class="validation-title" id="validation-banner-title">Math Verified</div>
+                <div id="validation-banner-desc" style="font-size:0.85rem;">Items + Tax + Tip matches Grand Total.</div>
+                <div id="reconcile-actions-wrap" style="margin-top:0.6rem; display:none;"></div>
+              </div>
+            </div>
+
+            <!-- Receipt Meta Card (Vendor, Date, Category, Confidence) -->
+            <div class="meta-card">
+              <div class="meta-header-row">
+                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                  <span class="confidence-chip high" id="confidence-chip">98% Confidence</span>
+                  <span style="font-size: 0.75rem; color: #64748b;">Gemini 2.5 Flash</span>
+                </div>
+                <div id="unclear-chips-wrap" class="unclear-chips"></div>
+              </div>
+
+              <form id="receipt-editor-form" onsubmit="event.preventDefault();">
+                <div class="form-grid-2">
+                  <div class="form-group">
+                    <label class="form-label">Vendor / Store Name</label>
+                    <input type="text" id="input-vendor-name" class="form-input" placeholder="e.g. Saravana Bhavan">
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Invoice / Receipt Date</label>
+                    <input type="date" id="input-date" class="form-input">
+                  </div>
+                </div>
+
+                <div class="form-grid-3" style="margin-top: 0.75rem;">
+                  <div class="form-group">
+                    <label class="form-label">Category</label>
+                    <select id="select-category" class="form-select">
+                      <option value="Food">🍽️ Food</option>
+                      <option value="Groceries">🛒 Groceries</option>
+                      <option value="Travel">✈️ Travel</option>
+                      <option value="Shopping">🛍️ Shopping</option>
+                      <option value="Utilities">💡 Utilities</option>
+                      <option value="Other">📄 Other</option>
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Currency</label>
+                    <select id="select-currency" class="form-select">
+                      <option value="INR">₹ INR (Indian Rupee)</option>
+                      <option value="USD">$ USD (US Dollar)</option>
+                      <option value="EUR">€ EUR (Euro)</option>
+                      <option value="GBP">£ GBP (British Pound)</option>
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Payment Method</label>
+                    <input type="text" id="input-payment-method" class="form-input" placeholder="UPI / Card / Cash">
+                  </div>
+                </div>
+
+                <div class="form-grid-2" style="margin-top: 0.75rem;">
+                  <div class="form-group">
+                    <label class="form-label">Address / Location</label>
+                    <input type="text" id="input-vendor-address" class="form-input" placeholder="Optional store location">
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Notes & GSTIN</label>
+                    <input type="text" id="input-notes" class="form-input" placeholder="GSTIN / Bill # / Tax Info">
+                  </div>
+                </div>
+              </form>
+            </div>
+
+            <!-- Line Items Table Card -->
+            <div class="items-card">
+              <div class="items-header">
+                <div style="font-weight: 700; font-size: 0.95rem; display: flex; align-items: center; gap: 0.4rem;">
+                  <i data-lucide="list-ordered" style="width:16px; color:#6366f1;"></i> Extracted Line Items
+                </div>
+                <button type="button" class="btn btn-secondary btn-sm" id="btn-add-item">
+                  <i data-lucide="plus" style="width:14px;"></i> Add Item
+                </button>
+              </div>
+
+              <table class="items-table">
+                <thead>
+                  <tr>
+                    <th>Item Description</th>
+                    <th style="text-align: right;">Qty</th>
+                    <th style="text-align: right;">Price</th>
+                    <th style="text-align: right;">Total</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody id="line-items-tbody">
+                  <!-- Dynamic Item Rows -->
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Totals & Taxes Summary Card -->
+            <div class="totals-card">
+              <div class="totals-row">
+                <span style="color: #94a3b8;">Subtotal (Items Net):</span>
+                <div class="totals-input-wrap">
+                  <input type="number" step="any" id="input-subtotal" class="form-input number" placeholder="0.00">
+                </div>
+              </div>
+              <div class="totals-row">
+                <span style="color: #94a3b8;">Tax (GST / CGST + SGST / VAT):</span>
+                <div class="totals-input-wrap">
+                  <input type="number" step="any" id="input-tax" class="form-input number" placeholder="0.00">
+                </div>
+              </div>
+              <div class="totals-row">
+                <span style="color: #94a3b8;">Tip / Gratuity:</span>
+                <div class="totals-input-wrap">
+                  <input type="number" step="any" id="input-tip" class="form-input number" placeholder="0.00">
+                </div>
+              </div>
+              <div class="totals-row">
+                <span style="color: #16a34a;">Discount:</span>
+                <div class="totals-input-wrap">
+                  <input type="number" step="any" id="input-discount" class="form-input number" placeholder="0.00">
+                </div>
+              </div>
+              <div class="totals-row grand-total">
+                <span style="color: #f8fafc;">Grand Total:</span>
+                <div class="totals-input-wrap">
+                  <input type="number" step="any" id="input-total" class="form-input number" style="font-size:1.15rem; font-weight:800; color:#10b981;" placeholder="0.00">
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Footer Action Bar -->
+          <div class="editor-action-bar">
+            <div style="display:flex; gap:0.5rem;">
+              <button class="btn btn-secondary btn-sm" id="btn-export-single-csv">
+                <i data-lucide="file-spreadsheet" style="width:14px;"></i> Export CSV
+              </button>
+              <button class="btn btn-secondary btn-sm" id="btn-export-single-json">
+                <i data-lucide="code" style="width:14px;"></i> JSON
+              </button>
+              <button class="btn btn-danger btn-sm" id="btn-delete-receipt">
+                <i data-lucide="trash-2" style="width:14px;"></i> Delete
+              </button>
+            </div>
+            <div>
+              <button class="btn btn-primary" id="btn-save-receipt">
+                <i data-lucide="check" style="width:16px;"></i> Save & Approve Receipt
+              </button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ====================================================================
+         VIEW 3: ANALYTICS DASHBOARD
+         ==================================================================== -->
+    <section class="view-section" id="view-dashboard">
+      <!-- KPI Stats -->
+      <div class="dashboard-stats-grid">
+        <div class="stat-card">
+          <div class="stat-info">
+            <div class="stat-label">Total Spend</div>
+            <div class="stat-value" id="stat-total-spend">₹0.00</div>
+          </div>
+          <div class="stat-icon-wrap" style="background: rgba(16, 185, 129, 0.15); color: #10b981;">
+            <i data-lucide="wallet" style="width:24px; height:24px;"></i>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-info">
+            <div class="stat-label">Processed Receipts</div>
+            <div class="stat-value" id="stat-total-receipts">0</div>
+          </div>
+          <div class="stat-icon-wrap" style="background: rgba(99, 102, 241, 0.15); color: #6366f1;">
+            <i data-lucide="receipt" style="width:24px; height:24px;"></i>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-info">
+            <div class="stat-label">Avg Ticket Size</div>
+            <div class="stat-value" id="stat-avg-spend">₹0.00</div>
+          </div>
+          <div class="stat-icon-wrap" style="background: rgba(6, 182, 212, 0.15); color: #06b6d4;">
+            <i data-lucide="trending-up" style="width:24px; height:24px;"></i>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-info">
+            <div class="stat-label">Discrepancy Flags</div>
+            <div class="stat-value" id="stat-flagged-count">0</div>
+          </div>
+          <div class="stat-icon-wrap" style="background: rgba(245, 158, 11, 0.15); color: #f59e0b;">
+            <i data-lucide="shield-alert" style="width:24px; height:24px;"></i>
+          </div>
+        </div>
+      </div>
+
+      <!-- Charts Section -->
+      <div class="charts-grid">
+        <!-- Monthly Spending by Category Bar Chart -->
+        <div class="chart-card">
+          <div class="chart-card-header">
+            <div class="chart-card-title">Monthly Spending by Category</div>
+            <span style="font-size:0.8rem; color:#64748b;">Stacked Breakdown</span>
+          </div>
+          <div class="chart-container">
+            <canvas id="chart-monthly-spending"></canvas>
+          </div>
+        </div>
+
+        <!-- Category Distribution Donut Chart -->
+        <div class="chart-card">
+          <div class="chart-card-header">
+            <div class="chart-card-title">Category Distribution</div>
+            <span style="font-size:0.8rem; color:#64748b;">All Time</span>
+          </div>
+          <div class="chart-container">
+            <canvas id="chart-category-distribution"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- Top Vendors Section -->
+      <div class="chart-card">
+        <div class="chart-card-header">
+          <div class="chart-card-title">Top Vendors Leaderboard</div>
+          <span style="font-size:0.8rem; color:#64748b;">Ranked by total spending</span>
+        </div>
+        <div class="vendors-list" id="top-vendors-list"></div>
+      </div>
+    </section>
+
+    <!-- ====================================================================
+         VIEW 4: ALL RECEIPTS HISTORY TABLE
+         ==================================================================== -->
+    <section class="view-section" id="view-receipts">
+      <div class="table-panel">
+        <div class="table-toolbar">
+          <div class="table-filters">
+            <input type="text" id="search-input" class="form-input" style="width:240px;" placeholder="Search vendor or notes...">
+            <select id="filter-category" class="form-select" style="width:140px;">
+              <option value="All">All Categories</option>
+              <option value="Food">Food</option>
+              <option value="Groceries">Groceries</option>
+              <option value="Travel">Travel</option>
+              <option value="Shopping">Shopping</option>
+              <option value="Utilities">Utilities</option>
+              <option value="Other">Other</option>
+            </select>
+            <select id="filter-status" class="form-select" style="width:140px;">
+              <option value="All">All Statuses</option>
+              <option value="valid">Verified</option>
+              <option value="flagged">Flagged</option>
+            </select>
+          </div>
+
+          <div style="display:flex; gap:0.5rem;">
+            <button class="btn btn-secondary btn-sm" id="btn-export-all-csv">
+              <i data-lucide="file-spreadsheet" style="width:14px;"></i> Export All CSV
+            </button>
+            <button class="btn btn-secondary btn-sm" id="btn-export-all-json">
+              <i data-lucide="code" style="width:14px;"></i> Export All JSON
+            </button>
+          </div>
+        </div>
+
+        <div class="data-table-wrap">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Vendor / Store</th>
+                <th>Category</th>
+                <th>Items</th>
+                <th>Total</th>
+                <th>Math Validation</th>
+                <th>Confidence</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="all-receipts-tbody">
+              <!-- Rendered Dynamically -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ====================================================================
+       MODAL 1: CAMERA CAPTURE MODAL
+       ==================================================================== -->
+  <div class="modal-backdrop" id="camera-modal">
+    <div class="modal-box">
+      <div class="modal-header">
+        <div class="modal-title" style="display:flex; align-items:center; gap:0.5rem;">
+          <i data-lucide="camera" style="width:18px; color:#6366f1;"></i> Capture Receipt
+        </div>
+        <button class="btn btn-secondary btn-sm btn-icon" id="btn-close-camera">
+          <i data-lucide="x" style="width:16px;"></i>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="camera-view-container">
+          <video id="camera-video" playsinline></video>
+          <div class="camera-guide-box"></div>
+          <div class="scanner-laser"></div>
+          <div class="camera-guide-text">Align receipt within the frame & keep steady</div>
+        </div>
+      </div>
+      <div class="modal-footer" style="justify-content:space-between;">
+        <button class="btn btn-secondary btn-sm" id="btn-flip-camera">
+          <i data-lucide="switch-camera" style="width:14px;"></i> Switch Camera
+        </button>
+        <button class="btn btn-primary" id="btn-snap-camera">
+          <i data-lucide="camera" style="width:16px;"></i> Take Snapshot & Extract
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ====================================================================
+       MODAL 2: SETTINGS & GEMINI API KEY MODAL
+       ==================================================================== -->
+  <div class="modal-backdrop" id="settings-modal">
+    <div class="modal-box">
+      <div class="modal-header">
+        <div class="modal-title" style="display:flex; align-items:center; gap:0.5rem;">
+          <i data-lucide="key-round" style="width:18px; color:#6366f1;"></i> Gemini API Configuration
+        </div>
+        <button class="btn btn-secondary btn-sm btn-icon" id="btn-close-settings">
+          <i data-lucide="x" style="width:16px;"></i>
+        </button>
+      </div>
+      <div class="modal-body">
+        <p style="font-size:0.875rem; color:#94a3b8;">
+          ReceiptLens uses <strong>Gemini 2.5 Flash</strong> with structured JSON schema output for multimodal OCR and document comprehension.
+        </p>
+
+        <div class="form-group">
+          <label class="form-label">Google AI Studio API Key</label>
+          <input type="password" id="setting-gemini-key" class="form-input" placeholder="AIzaSy...">
+        </div>
+
+        <div style="font-size:0.8rem; color:#64748b; background: rgba(255,255,255,0.03); padding:0.75rem; border-radius:8px; border:1px solid rgba(255,255,255,0.06);">
+          🔒 <strong>Privacy & Security:</strong> Your API key is stored strictly on your local backend server in <code>.env</code>. It is never exposed in client bundles.
+          <br><br>
+          Don't have a key? Get one free at <a href="https://aistudio.google.com/app/apikey" target="_blank" style="color:#6366f1; text-decoration:underline;">Google AI Studio</a>.
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-primary" id="btn-save-api-key">
+          <i data-lucide="save" style="width:14px;"></i> Save API Key
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div class="toast-container" id="toast-container"></div>
+
+  <!-- App Scripts -->
+  <script src="/js/viewer.js"></script>
+  <script src="/js/validator.js"></script>
+  <script src="/js/camera.js"></script>
+  <script src="/js/dashboard.js"></script>
+  <script src="/js/export.js"></script>
+  <script src="/js/app.js"></script>
+
+  <script>
+    // Initialize Lucide icons
+    document.addEventListener('DOMContentLoaded', () => {
+      if (window.lucide) {
+        window.lucide.createIcons();
+      }
+    });
+  </script>
+</body>
+</html>

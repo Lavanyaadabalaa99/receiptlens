@@ -1,0 +1,95 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 450 720" width="450" height="720" style="background:#ffffff; font-family: 'Courier New', Courier, monospace; color: #1e293b;">
+    <defs>
+        
+        <pattern id="paper-texture" width="10" height="10" patternUnits="userSpaceOnUse">
+            <rect width="10" height="10" fill="#fcfbf7" />
+            <circle cx="2" cy="2" r="0.5" fill="#e2e8f0" opacity="0.4"/>
+            <circle cx="7" cy="7" r="0.5" fill="#cbd5e1" opacity="0.3"/>
+        </pattern>
+        <filter id="paper-shadow" x="-5%" y="-5%" width="110%" height="110%">
+            <feDropShadow dx="0" dy="6" stdDeviation="8" flood-color="#000000" flood-opacity="0.15" />
+        </filter>
+    </defs>
+    
+    <g  filter="url(#paper-shadow)">
+        <!-- Receipt Paper -->
+        <rect x="20" y="20" width="410" height="680" rx="4" fill="url(#paper-texture)" stroke="#e2e8f0" stroke-width="1.5" />
+        
+        <!-- Serrated top/bottom receipt edge simulation -->
+        <path d="M 20 20 L 430 20 L 430 25 L 20 25 Z" fill="#f1f5f9" />
+        
+        <!-- Header -->
+        <text x="225" y="65" text-anchor="middle" font-size="18" font-weight="bold" fill="#0f172a">NATURE'S BASKET</text>
+        <text x="225" y="85" text-anchor="middle" font-size="12" fill="#475569">Organic & Gourmet Supermarket</text>
+    <text x="225" y="110" text-anchor="middle" font-size="11" fill="#64748b">Indiranagar 100ft Road, Bengaluru - 560038</text>
+<text x="225" y="128" text-anchor="middle" font-size="11" fill="#64748b">Tel: +91 80 4123 5566 | GST: 29AABCN8899K1Z4</text>
+<text x="225" y="146" text-anchor="middle" font-size="11" fill="#64748b">Date: 02/10/2026 14:15 | Cashier: #08 | Inv: NB-4819</text>
+<line x1="40" y1="169" x2="410" y2="169" stroke="#0f172a" stroke-dasharray="4,3" stroke-width="1" />
+<text x="45" y="191" font-size="11" font-weight="bold" fill="#0f172a">ITEM</text>
+<text x="260" y="191" text-anchor="end" font-size="11" font-weight="bold" fill="#0f172a">QTY</text>
+<text x="330" y="191" text-anchor="end" font-size="11" font-weight="bold" fill="#0f172a">PRICE</text>
+<text x="405" y="191" text-anchor="end" font-size="11" font-weight="bold" fill="#0f172a">TOTAL</text>
+<line x1="40" y1="199" x2="410" y2="199" stroke="#cbd5e1" stroke-width="1" />
+<text x="45" y="219" font-size="11" fill="#1e293b">Aashirvaad Shudh Cha..</text>
+<text x="260" y="219" text-anchor="end" font-size="11" fill="#334155">1</text>
+<text x="330" y="219" text-anchor="end" font-size="11" fill="#334155">₹295.00</text>
+<text x="405" y="219" text-anchor="end" font-size="11" font-weight="bold" fill="#0f172a">₹295.00</text>
+<text x="45" y="239" font-size="11" fill="#1e293b">Organic Alphonso Man..</text>
+<text x="260" y="239" text-anchor="end" font-size="11" fill="#334155">2</text>
+<text x="330" y="239" text-anchor="end" font-size="11" fill="#334155">₹225.00</text>
+<text x="405" y="239" text-anchor="end" font-size="11" font-weight="bold" fill="#0f172a">₹450.00</text>
+<text x="45" y="259" font-size="11" fill="#1e293b">Fortune Sunlite Sunf..</text>
+<text x="260" y="259" text-anchor="end" font-size="11" fill="#334155">2</text>
+<text x="330" y="259" text-anchor="end" font-size="11" fill="#334155">₹160.00</text>
+<text x="405" y="259" text-anchor="end" font-size="11" font-weight="bold" fill="#0f172a">₹320.00</text>
+<text x="45" y="279" font-size="11" fill="#1e293b">Amul Pasteurised But..</text>
+<text x="260" y="279" text-anchor="end" font-size="11" fill="#334155">1</text>
+<text x="330" y="279" text-anchor="end" font-size="11" fill="#334155">₹275.00</text>
+<text x="405" y="279" text-anchor="end" font-size="11" font-weight="bold" fill="#0f172a">₹275.00</text>
+<text x="45" y="299" font-size="11" fill="#1e293b">Broccoli Exotic 500g</text>
+<text x="260" y="299" text-anchor="end" font-size="11" fill="#334155">1</text>
+<text x="330" y="299" text-anchor="end" font-size="11" fill="#334155">₹80.00</text>
+<text x="405" y="299" text-anchor="end" font-size="11" font-weight="bold" fill="#0f172a">₹80.00</text>
+<line x1="40" y1="324" x2="410" y2="324" stroke="#cbd5e1" stroke-width="1" />
+<text x="45" y="346" font-size="11" fill="#475569">Subtotal:</text>
+<text x="405" y="346" text-anchor="end" font-size="11" fill="#1e293b">₹1420.00</text>
+<text x="45" y="364" font-size="11" fill="#475569">CGST @ 2.5%:</text>
+<text x="405" y="364" text-anchor="end" font-size="11" fill="#1e293b">₹35.50</text>
+<text x="45" y="382" font-size="11" fill="#475569">SGST @ 2.5%:</text>
+<text x="405" y="382" text-anchor="end" font-size="11" fill="#1e293b">₹35.50</text>
+<text x="45" y="400" font-size="11" fill="#16a34a">Store Discount:</text>
+<text x="405" y="400" text-anchor="end" font-size="11" fill="#16a34a">-₹50.00</text>
+<line x1="40" y1="426" x2="410" y2="426" stroke="#0f172a" stroke-width="1.5" />
+<text x="45" y="450" font-size="15" font-weight="bold" fill="#0f172a">GRAND TOTAL:</text>
+<text x="405" y="450" text-anchor="end" font-size="16" font-weight="bold" fill="#0f172a">₹1441.00</text>
+<line x1="40" y1="475" x2="410" y2="475" stroke="#cbd5e1" stroke-dasharray="3,3" stroke-width="1" />
+<text x="225" y="497" text-anchor="middle" font-size="10" fill="#64748b">Member Card: NB-7721 (Earned 45 Pts)</text>
+<text x="225" y="513" text-anchor="middle" font-size="10" fill="#64748b">Paid via HDFC Credit Card **** 4019</text>
+
+        <g transform="translate(130, 539)">
+            <rect x="0" y="0" width="3" height="30" fill="#0f172a" />
+            <rect x="6" y="0" width="2" height="30" fill="#0f172a" />
+            <rect x="12" y="0" width="4" height="30" fill="#0f172a" />
+            <rect x="20" y="0" width="2" height="30" fill="#0f172a" />
+            <rect x="26" y="0" width="5" height="30" fill="#0f172a" />
+            <rect x="35" y="0" width="2" height="30" fill="#0f172a" />
+            <rect x="42" y="0" width="4" height="30" fill="#0f172a" />
+            <rect x="50" y="0" width="1" height="30" fill="#0f172a" />
+            <rect x="56" y="0" width="6" height="30" fill="#0f172a" />
+            <rect x="68" y="0" width="2" height="30" fill="#0f172a" />
+            <rect x="74" y="0" width="3" height="30" fill="#0f172a" />
+            <rect x="82" y="0" width="5" height="30" fill="#0f172a" />
+            <rect x="92" y="0" width="2" height="30" fill="#0f172a" />
+            <rect x="98" y="0" width="4" height="30" fill="#0f172a" />
+            <rect x="108" y="0" width="3" height="30" fill="#0f172a" />
+            <rect x="116" y="0" width="5" height="30" fill="#0f172a" />
+            <rect x="126" y="0" width="2" height="30" fill="#0f172a" />
+            <rect x="134" y="0" width="4" height="30" fill="#0f172a" />
+            <rect x="144" y="0" width="6" height="30" fill="#0f172a" />
+            <rect x="156" y="0" width="2" height="30" fill="#0f172a" />
+            <rect x="164" y="0" width="5" height="30" fill="#0f172a" />
+            <rect x="174" y="0" width="2" height="30" fill="#0f172a" />
+            <rect x="180" y="0" width="4" height="30" fill="#0f172a" />
+        </g>
+    </g>
+</svg>
